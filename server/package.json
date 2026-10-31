@@ -1,0 +1,9 @@
+{
+  "name": "penunggu-malam-server",
+  "version": "1.0.0",
+  "description": "Server WebSocket mabar untuk Penunggu Malam",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" },
+  "dependencies": { "ws": "^8.18.0" }
+}
