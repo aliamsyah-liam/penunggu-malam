@@ -1,1 +1,58 @@
+name: Build APK
 
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependensi
+        run: npm install
+
+      - name: Unduh Three.js (offline di APK)
+        run: node scripts/fetch-three.js
+
+      - name: Buat proyek Android
+        run: npx cap add android
+
+      - name: Kunci layar landscape
+        run: sed -i 's/<activity /<activity android:screenOrientation="sensorLandscape" /' android/app/src/main/AndroidManifest.xml
+
+      - name: Sync web ke Android
+        run: npx cap sync android
+
+      - name: Build APK debug
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: penunggu-malam-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Lampirkan ke Release (tag v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: android/app/build/outputs/apk/debug/app-debug.apk
